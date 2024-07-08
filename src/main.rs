@@ -3,6 +3,7 @@ use mongodb::{
     bson::{doc, Bson, Document},
     sync::{Client, Collection, Database},
 };
+use indicatif::ProgressBar;
 use serde::{Deserialize, Serialize};
 use std::{env, fs, path::Path};
 #[derive(Serialize,Deserialize)]
@@ -27,6 +28,8 @@ impl Config{
     }
 }
 fn main() -> mongodb::error::Result<()> {
+    let bar = ProgressBar::new_spinner().with_message("waiting for message");
+    bar.enable_steady_tick(100);
     let command = env::args().nth(1).expect("What do you want to do?");
     let mut config = Config::load();
     match command.as_str() {
@@ -36,6 +39,7 @@ fn main() -> mongodb::error::Result<()> {
             let collection: Collection<Document> = database.collection("list");
             let c  = collection.find_one(doc! {"name" : name}).run()?.expect("No one having this name found in database, we recommed adding something to your list : cargo run -- add <something..something> ");
             let c = c.get("list").unwrap();
+            bar.finish_and_clear();
             if let Bson::Array(arr) = c {
                 let mut i = 1;
                 println!("List items -");
@@ -53,7 +57,6 @@ fn main() -> mongodb::error::Result<()> {
                 .expect("give it a valid name as : cargo run -- name <valid name>");
             config.name_for_mongo = Some(username.clone());
             config.save();
-            
             let database = connect_to_mongo();
             let collection: Collection<Document> = database.collection("list");
             let c = collection
@@ -62,6 +65,7 @@ fn main() -> mongodb::error::Result<()> {
             if c.is_some() {
                 let c = c.unwrap();
                 let c = c.get("list").unwrap();
+                bar.finish_and_clear();
                 if let Bson::Array(arr) = c {
                     let mut i = 1;
                     println!("List items -");
@@ -80,6 +84,7 @@ fn main() -> mongodb::error::Result<()> {
         }
         _ => panic!("Unknown command"),
     }
+    
     Ok(())
 }
 fn connect_to_mongo() -> Database {
@@ -93,7 +98,6 @@ fn get_username(config : &mut Config) -> &str{
         let username = env::args().nth(2).expect("Something went wrong");
         config.name_for_mongo = Some(username);
         config.save();
-
     }
     config.name_for_mongo.as_ref().unwrap()
 }
