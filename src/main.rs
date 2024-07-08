@@ -28,8 +28,8 @@ impl Config{
     }
 }
 fn main() -> mongodb::error::Result<()> {
-    let bar = ProgressBar::new_spinner().with_message("waiting for message");
-    bar.enable_steady_tick(100);
+    let bar = ProgressBar::new_spinner().with_message("waiting for response.");
+    bar.enable_steady_tick(25);
     let command = env::args().nth(1).expect("What do you want to do?");
     let mut config = Config::load();
     match command.as_str() {
@@ -77,14 +77,14 @@ fn main() -> mongodb::error::Result<()> {
                     }
                 }
             } else {
-                let _ = collection.insert_one(doc! {"name" : &username , "list" : []});
+                let _ = collection.insert_one(doc! {"name" : &username, "list" : []}).run()?;
+                bar.finish_and_clear();
             }
             println!("You are all set to add items to your list {}", username);
             return Ok(());
         }
         _ => panic!("Unknown command"),
     }
-    
     Ok(())
 }
 fn connect_to_mongo() -> Database {
