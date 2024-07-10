@@ -33,6 +33,7 @@ fn main() -> mongodb::error::Result<()> {
     let command = env::args().nth(1).expect("What do you want to do?");
     let mut config = Config::load();
     match command.as_str() {
+        // READ
         "list" => {
             let name = get_username(&mut config);
             let database = connect_to_mongo();
@@ -51,6 +52,7 @@ fn main() -> mongodb::error::Result<()> {
                 }
             }
         }
+        // Adding the user
         "name" => {
             let username = env::args()
                 .nth(2)
@@ -82,6 +84,20 @@ fn main() -> mongodb::error::Result<()> {
             }
             println!("You are all set to add items to your list {}", username);
             return Ok(());
+        }
+        "add" => {
+            let item_to_add = env::args().nth(2).expect("You need to pass item like : cargo run -- add \"<item>\"");
+            let database = connect_to_mongo();
+            let collection: Collection<Document> = database.collection("list");
+            let mut config = Config::load();
+            let name = get_username(&mut config);
+            let _ = collection.find_one_and_update(doc! {"name" : name}, doc! {"$push" : doc! {"list" : item_to_add}}).run()?;
+            bar.finish_and_clear();
+            println!("New item successfully added.");
+            return Ok(());
+        }
+        "delete" => {
+            todo!()
         }
         _ => panic!("Unknown command"),
     }
