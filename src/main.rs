@@ -97,7 +97,28 @@ fn main() -> mongodb::error::Result<()> {
             return Ok(());
         }
         "delete" => {
-            todo!()
+            let item_to_delete = env::args().nth(2).expect("Must pass a value to delete");
+            let idx = item_to_delete.parse::<i32>().expect("expected a number");
+            let update_pipeline = vec![
+            doc! {
+                    "$set": { 
+                        "list": {
+                            "$concatArrays": [
+                                { "$slice": ["$list", idx] },
+                                { "$slice": ["$list", { "$add": [idx + 1, 0] }, { "$size": "$list" }] }
+                            ]
+                        }
+                    }
+                }
+            ];
+            let database = connect_to_mongo();
+            let collection: Collection<Document> = database.collection("list");
+            let mut config = Config::load();
+            let name = get_username(&mut config);
+            let _ = collection.update_one(doc! {"name" : name}, update_pipeline).run()?;
+            bar.finish_and_clear();
+            println!("Item deleted successfully.");
+            return Ok(());
         }
         _ => panic!("Unknown command"),
     }
