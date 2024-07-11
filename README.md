@@ -29,10 +29,7 @@ Delete an item from list
 ```bash
   cargo run -- delete <item_number>
 ```
-## Contributing
 
-Contributions are always welcome!
+## Appendix
 
-See `contributing.md` for ways to get started.
-
-Please adhere to this project's `code of conduct`.
+I'm open to any suggestions.
