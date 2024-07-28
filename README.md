@@ -18,6 +18,9 @@ List all the items
   cargo run -- list
 ```
 
+https://github.com/user-attachments/assets/595043e0-339c-4320-8da3-15120d320223
+
+
 Add new item to the list
 
 ```bash
